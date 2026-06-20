@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: binance_raw
+    database: raw       
+    tables:
+      - name: binance_trade_batchjob
+        description: "Raw trades from Binance"

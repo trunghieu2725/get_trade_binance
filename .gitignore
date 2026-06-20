@@ -1,0 +1,57 @@
+# ==========================================
+# 1. ClickHouse Data & Docker Volumes
+# ==========================================
+# Không commit dữ liệu vật lý hoặc file tạm của database
+clickhouse_data/
+shared_data/
+*.parquet
+*.csv
+
+# ==========================================
+# 2. Security & Environments
+# ==========================================
+# Tuyệt đối không commit file chứa mật khẩu, private key
+.env
+.env.local
+.env.*
+profile.yml
+profiles.yml
+.Credential*
+/.docker-compose.override.yml
+
+# dbt user dir
+/.dbt/
+
+# ==========================================
+# 3. Python Environment
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.pytest_cache/
+
+# ==========================================
+# 4. dbt (Data Build Tool)
+# ==========================================
+# Các file log, cache và build của dbt tự sinh ra, không cần commit
+dbt_project/dbt_packages/
+dbt_project/logs/
+dbt_project/target/
+
+# ==========================================
+# 5. Airflow / Postgres / ClickHouse logs
+# ==========================================
+airflow/logs/
+airflow_postgres_data/
+clickhouse_logs/
+*.log
+
+# ==========================================
+# 6. OS & IDE Systems
+# ==========================================
+.DS_Store
+.idea/
+.vscode/

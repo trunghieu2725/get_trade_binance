@@ -1,0 +1,20 @@
+
+
+name: 'binance_analytics'
+version: '1.0.0'
+config-version: 2
+
+profile: 'binance_pipeline'
+
+model-paths: ["models"]
+
+models:
+  binance_analytics:
+    # Lớp Staging: Tạo view để transform nhẹ
+    staging:
+      +materialized: view
+    # Lớp Marts: Tạo bảng vật lý sử dụng Engine của ClickHouse
+    marts:
+      +materialized: table
+      +engine: 'MergeTree()'
+      +order_by: 'window_start, symbol' # Phục vụ tối ưu index truy vấn
