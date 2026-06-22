@@ -15,6 +15,8 @@ SYMBOLS = [
 
 RUN_DATE = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
+# RUN_DATE = '2026-06-17'
+
 OUTPUT_DIR = "data/spot_trade_daily"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -51,19 +53,6 @@ def download_daily_trades(symbol: str, trade_date: str) -> pd.DataFrame:
     return df
 
 
-# =========================
-# CLEAN + NORMALIZE
-# =========================
-def normalize_df(df: pd.DataFrame) -> pd.DataFrame:
-    if df is None or df.empty:
-        return df
-    
-    df["trade_time"] = df["trade_time"].astype(str)
-
-    return df
-
-
-
 
 # =========================
 # SAVE PARQUET
@@ -94,7 +83,6 @@ def main():
 
             df = download_daily_trades(symbol, RUN_DATE)
 
-            df = normalize_df(df)
 
             save_parquet(df, symbol, RUN_DATE)
 

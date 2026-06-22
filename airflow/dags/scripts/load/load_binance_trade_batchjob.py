@@ -66,6 +66,9 @@ def load_parquet_files(target_date: str):
 # ADD INGESTION TIME
 # =========================
 def add_ingestion_time(df):
+    if df is None or df.empty:
+        print("No data to insert")
+        return
     df["ingestion_time"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     return df
 
@@ -94,11 +97,11 @@ if __name__ == "__main__":
 
     target_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
+    # target_date = '2026-06-17'
+
     df = load_parquet_files(target_date)
 
     df = add_ingestion_time(df)
-    df.head()
-
 
     print("Columns after clean:", df.columns.tolist())
 
