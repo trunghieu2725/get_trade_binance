@@ -1,22 +1,22 @@
 # Binance ClickHouse Pipeline
 
-Du an nay dung de thu thap du lieu giao dich Binance, luu vao ClickHouse, dieu phoi bang Airflow va bien doi du lieu bang dbt.
+Dự án này dùng để thu thập dữ liệu giao dịch Binance, lưu vào ClickHouse, điều phối bằng Airflow và biến đổi dữ liệu bằng dbt.
 
-## Thanh phan chinh
+## Thành phần chính
 
-- **ClickHouse**: database phan tich de luu raw, staging va mart data.
-- **Airflow**: dieu phoi pipeline ingestion va load du lieu.
-- **Kafka + Zookeeper**: ho tro luong du lieu realtime.
-- **dbt**: quan ly model SQL va bien doi du lieu trong ClickHouse.
-- **Python scripts**: tai du lieu Binance batch/realtime va load vao ClickHouse.
+- **ClickHouse**: database phân tích để lưu raw, staging và mart data.
+- **Airflow**: điều phối pipeline ingestion và load dữ liệu.
+- **Kafka + Zookeeper**: hỗ trợ luồng dữ liệu realtime.
+- **dbt**: quản lý model SQL và biến đổi dữ liệu trong ClickHouse.
+- **Python scripts**: tải dữ liệu Binance batch/realtime và load vào ClickHouse.
 
-## Yeu cau
+## Yêu cầu
 
 - Docker
 - Docker Compose
-- Python 3.11 neu muon chay script/dbt truc tiep tren may local
+- Python 3.11 nếu muốn chạy script/dbt trực tiếp trên máy local
 
-## Cai dat nhanh
+## Cài đặt nhanh
 
 Clone repository:
 
@@ -25,7 +25,7 @@ git clone <repository-url>
 cd ClickHouse
 ```
 
-Tao file `.env` tu mau ben duoi:
+Tạo file `.env` từ mẫu bên dưới:
 
 ```env
 CLICKHOUSE_USER=default
@@ -41,33 +41,33 @@ AIRFLOW_ADMIN_PASSWORD=admin
 AIRFLOW_DB_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
 ```
 
-Khoi dong cac service:
+Khởi động các service:
 
 ```bash
 docker compose up -d
 ```
 
-Kiem tra container:
+Kiểm tra container:
 
 ```bash
 docker compose ps
 ```
 
-## Truy cap dich vu
+## Truy cập dịch vụ
 
 - Airflow UI: http://localhost:8080
 - ClickHouse HTTP: http://localhost:8123
 - ClickHouse native port: `localhost:9000`
 - Kafka host port: `localhost:9092`
 
-Tai khoan Airflow mac dinh se lay theo `.env`:
+Tài khoản Airflow mặc định sẽ lấy theo `.env`:
 
-- Username: gia tri cua `AIRFLOW_ADMIN_USER`
-- Password: gia tri cua `AIRFLOW_ADMIN_PASSWORD`
+- Username: giá trị của `AIRFLOW_ADMIN_USER`
+- Password: giá trị của `AIRFLOW_ADMIN_PASSWORD`
 
-## Cai dat Python dependencies
+## Cài đặt Python dependencies
 
-Neu can chay script hoac dbt tren local:
+Nếu cần chạy script hoặc dbt trên local:
 
 ```bash
 python -m venv venv
@@ -75,7 +75,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Tren macOS/Linux:
+Trên macOS/Linux:
 
 ```bash
 python -m venv venv
@@ -83,27 +83,80 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Chay Airflow pipeline
+## Chạy Airflow pipeline
 
-Sau khi `docker compose up -d`, mo Airflow UI tai http://localhost:8080, bat DAG:
+Sau khi `docker compose up -d`, mở Airflow UI tại http://localhost:8080, bật DAG:
 
 ```text
 binance_daily_pipeline
 ```
 
-DAG nay se:
+DAG này sẽ:
 
-1. Tai du lieu trade Binance theo ngay.
-2. Luu file parquet vao thu muc `data/spot_trade_daily`.
-3. Load du lieu vao ClickHouse.
+1. Tải dữ liệu trade Binance theo ngày.
+2. Lưu file parquet vào thư mục `data/spot_trade_daily`.
+3. Load dữ liệu vào ClickHouse.
 
-## Chay dbt
+## Pipeline realtime với Kafka
 
-dbt project nam trong thu muc `dbt_project`.
+Ngoài batch pipeline theo ngày, project còn có pipeline realtime để lấy trade trong ngày từ Binance WebSocket và đẩy vào Kafka.
 
-Tao file profile local cho dbt. Khuyen nghi khong commit file profile chua password len GitHub.
+Luồng realtime hiện tại:
 
-Vi du `dbt_project/profiles.yml`:
+```text
+Binance WebSocket -> Python Producer -> Kafka topic binance-trade
+```
+
+Kafka và Zookeeper đã được cấu hình trong `docker-compose.yaml`. Sau khi chạy:
+
+```bash
+docker compose up -d
+```
+
+Kafka sẽ lắng nghe ở:
+
+- Trong Docker network: `kafka:29092`
+- Từ máy local: `localhost:9092`
+
+Chạy producer realtime từ máy local:
+
+```bash
+python airflow/dags/scripts/ingestion/web/ingestion_binance_trade_realtime/producer.py
+```
+
+Mặc định producer sẽ:
+
+- Kết nối Binance WebSocket.
+- Lấy trade realtime cho các symbol `BTCUSDT,ETHUSDT,ADAUSDT`.
+- Gửi message vào Kafka topic `binance-trade`.
+
+Có thể truyền symbol khác khi chạy:
+
+```bash
+python airflow/dags/scripts/ingestion/web/ingestion_binance_trade_realtime/producer.py --symbols BTCUSDT,ETHUSDT,ARBUSDT
+```
+
+Hoặc truyền Kafka bootstrap server và topic:
+
+```bash
+python airflow/dags/scripts/ingestion/web/ingestion_binance_trade_realtime/producer.py --bootstrap localhost:9092 --topic binance-trade
+```
+
+Chạy consumer để kiểm tra dữ liệu realtime đang vào Kafka:
+
+```bash
+python airflow/dags/scripts/ingestion/web/ingestion_binance_trade_realtime/consumer.py
+```
+
+Consumer hiện tại dùng để đọc topic `binance-trade` và in message ra console. Phần dbt model realtime đang đọc từ source `raw.raw_binance_trade_realtime_persist`, vì vậy để persist dữ liệu realtime vào ClickHouse cần có bảng Kafka engine/materialized view tương ứng trong ClickHouse để đổ dữ liệu từ topic `binance-trade` sang bảng raw persist.
+
+## Chạy dbt
+
+dbt project nằm trong thư mục `dbt_project`.
+
+Tạo file profile local cho dbt. Khuyến nghị không commit file profile chứa password lên GitHub.
+
+Ví dụ `dbt_project/profiles.yml`:
 
 ```yaml
 binance_pipeline:
@@ -122,7 +175,7 @@ binance_pipeline:
       verify: false
 ```
 
-Chay dbt:
+Chạy dbt:
 
 ```bash
 cd dbt_project
@@ -131,34 +184,34 @@ dbt debug --profiles-dir .
 dbt run --profiles-dir .
 ```
 
-Neu muon chay theo target khac:
+Nếu muốn chạy theo target khác:
 
 ```bash
 dbt run --profiles-dir . --target prod
 ```
 
-## Cau truc thu muc
+## Cấu trúc thư mục
 
 ```text
 .
-├── airflow/
-│   └── dags/
-│       ├── binance_trade_dag.py
-│       └── scripts/
-├── data/
-├── dbt_project/
-│   ├── models/
-│   ├── dbt_project.yml
-│   └── packages.yml
-├── docker-compose.yaml
-├── Dockerfile
-├── requirements.txt
-└── README.md
+|-- airflow/
+|   `-- dags/
+|       |-- binance_trade_dag.py
+|       `-- scripts/
+|-- data/
+|-- dbt_project/
+|   |-- models/
+|   |-- dbt_project.yml
+|   `-- packages.yml
+|-- docker-compose.yaml
+|-- Dockerfile
+|-- requirements.txt
+`-- README.md
 ```
 
-## Luu y khi commit len GitHub
+## Lưu ý khi commit lên GitHub
 
-Khong nen commit cac file va thu muc local sau:
+Không nên commit các file và thư mục local sau:
 
 - `.env`
 - `venv/`
@@ -169,22 +222,22 @@ Khong nen commit cac file va thu muc local sau:
 - `dbt_project/target/`
 - `dbt_project/dbt_packages/`
 - `dbt_project/logs/`
-- cac file `.parquet`, `.csv` sinh ra trong qua trinh chay pipeline
+- các file `.parquet`, `.csv` sinh ra trong quá trình chạy pipeline
 
-Neu da tung commit file chua password, hay doi password va xoa secret khoi lich su Git truoc khi public repository.
+Nếu đã từng commit file chứa password, hãy đổi password và xóa secret khỏi lịch sử Git trước khi public repository.
 
-## Dung container
+## Dừng container
 
-Dung container:
+Dừng container:
 
 ```bash
 docker compose down
 ```
 
-Dung va xoa volume local:
+Dừng và xóa volume local:
 
 ```bash
 docker compose down -v
 ```
 
-Lenh `down -v` se xoa du lieu ClickHouse va Postgres local, chi dung khi ban chac chan khong can giu data.
+Lệnh `down -v` sẽ xóa dữ liệu ClickHouse và Postgres local, chỉ dùng khi bạn chắc chắn không cần giữ data.
