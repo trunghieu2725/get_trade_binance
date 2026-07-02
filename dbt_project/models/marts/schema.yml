@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: fact_binance_trade
+    columns:
+      - name: trade_time
+        tests:
+          - not_null
+      - name: symbol
+        tests:
+          - not_null

@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: binance_raw
-    database: raw       
+    schema: raw
     tables:
       - name: raw_binance_trade_batchjob
         description: "Raw trades from Binance"
@@ -10,7 +10,7 @@ sources:
         description: "Raw trades from Binance"
       - name: raw_binance_trade_realtime_persist
   - name: stg
-    database: stg_prod       
+    schema: stg
     tables:
       - name: stg_binance_trade_batchjob
         description: "Raw trades from Binance"

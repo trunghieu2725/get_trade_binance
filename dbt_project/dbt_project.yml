@@ -1,5 +1,3 @@
-
-
 name: 'binance_analytics'
 version: '1.0.0'
 config-version: 2
@@ -9,15 +7,20 @@ profile: 'binance_pipeline'
 model-paths: ["models"]
 
 on-run-start:
+
   - "{{ create_raw_binance_trade_realtime_kafka_table() }}"
+  - "{{ create_raw_binance_trade_realtime_persist_kafka_table() }}"
+  - "{{ create_mv_raw_binance_trade_realtime_to_persist_kafka_view() }}"
 
 models:
   binance_analytics:
-    # Lớp Staging: Tạo view để transform nhẹ
-    staging:
+    # Staging models
+    stg:
       +materialized: view
-    # Lớp Marts: Tạo bảng vật lý sử dụng Engine của ClickHouse
+    # Mart models
     marts:
       +materialized: table
       +engine: 'MergeTree()'
-      +order_by: 'window_start, symbol' # Phục vụ tối ưu index truy vấn
+      +order_by: 'trade_time, symbol'
+      +settings:
+        allow_nullable_key: 1

@@ -1,8 +1,8 @@
 {% macro create_raw_binance_trade_realtime_kafka_table() %}
 CREATE TABLE IF NOT EXISTS raw.raw_binance_trade_realtime
 (
-    `key` String,
-    `payload` String
+    key String,
+    payload String
 )
 ENGINE = Kafka
 SETTINGS
