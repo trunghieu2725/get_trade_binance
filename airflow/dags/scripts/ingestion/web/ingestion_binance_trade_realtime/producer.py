@@ -10,18 +10,7 @@ import threading
 def now_us():
     return int(time.time() * 1_000_000)
 
-# def send_trade(producer, topic, trade):
-#     # send full Binance trade object, but add normalized timestamp fields for convenience
-#     msg = dict(trade)  # copy original payload
-#     # add microsecond timestamps (if T present in ms)
-#     try:
-#         msg["trade_time_us"] = int(trade.get("T")) * 1000
-#     except Exception:
-#         msg["trade_time_us"] = None
-#     msg["ingestion_time_us"] = now_us()
-#     # send raw msg (JSON serializable)
-#     print(f"sending {msg.get('s')} price={msg.get('p')} qty={msg.get('q')}")
-#     producer.send(topic, value=msg, key=(trade.get("s") or "").encode("utf-8"))
+
 def send_trade(producer, topic, trade):
     # trade is a dict (the Binance "data" object)
     # wrap as {"payload": "<json string>"} so ClickHouse JSONEachRow can map to payload column
