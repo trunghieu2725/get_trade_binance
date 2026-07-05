@@ -209,22 +209,9 @@ dbt run --profiles-dir . --target prod
 `-- README.md
 ```
 
-## Lưu ý khi commit lên GitHub
 
-Không nên commit các file và thư mục local sau:
 
-- `.env`
-- `venv/`
-- `clickhouse_data/`
-- `clickhouse_logs/`
-- `airflow_postgres_data/`
-- `airflow/logs/`
-- `dbt_project/target/`
-- `dbt_project/dbt_packages/`
-- `dbt_project/logs/`
-- các file `.parquet`, `.csv` sinh ra trong quá trình chạy pipeline
 
-Nếu đã từng commit file chứa password, hãy đổi password và xóa secret khỏi lịch sử Git trước khi public repository.
 
 ## Dừng container
 

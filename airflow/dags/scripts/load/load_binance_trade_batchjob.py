@@ -6,12 +6,13 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 from datetime import datetime, timedelta
+import argparse
 # =========================
 # CONFIG
 # =========================
 PARQUET_FOLDER = "/opt/airflow/data/spot_trade_daily"
 CLICKHOUSE_DB = "raw"
-CLICKHOUSE_TABLE = "binance_trade_batchjob"
+CLICKHOUSE_TABLE = "raw_binance_trade_batchjob"
 
 # =========================
 # ENV + CLICKHOUSE CONNECT
@@ -39,12 +40,21 @@ COLUMNS = [
     "trade_id",
     "symbol"
 ]
+parser = argparse.ArgumentParser(description="Load Binance trade parquet to ClickHouse")
 
+parser.add_argument(
+    "--date",
+    type=str,
+    help="Target date (YYYY-MM-DD). If omitted, defaults to yesterday."
+)
+
+args = parser.parse_args()
 # =========================
 # LOAD PARQUET
 # =========================
 def load_parquet_files(target_date: str):
-    pattern = f"{PARQUET_FOLDER}/*{target_date}*.parquet"
+    base_folder = os.path.join(PARQUET_FOLDER, f"{target_date}")
+    pattern = os.path.join(base_folder, "*", f"{target_date}_*.parquet")
     files = glob.glob(pattern)
 
     if not files:
@@ -94,9 +104,12 @@ def insert_to_clickhouse(df):
 # =========================
 if __name__ == "__main__":
     
-
-    target_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-
+    if args.date:
+        target_date = args.date
+    else:
+        # Không truyền thì mặc định lấy hôm qua
+        target_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    
     # target_date = '2026-06-17'
 
     df = load_parquet_files(target_date)

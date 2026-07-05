@@ -1,9 +1,9 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+
 from datetime import datetime, timedelta
 import subprocess
 import os
-
 
 # =========================
 # CONFIG
@@ -12,10 +12,14 @@ import os
 DAGS_FOLDER = os.path.dirname(os.path.realpath(__file__))
 
 # Nối đường dẫn động vào các script con
-INGESTION_SCRIPT = os.path.join(
-    DAGS_FOLDER,"scripts","ingestion", "web", "ingestion_binance_trade_batchjob.py"
-)
+INGESTION_SCRIPT = os.path.join(DAGS_FOLDER,"scripts","ingestion", "web", "ingestion_binance_trade_batchjob.py")
+
 LOAD_SCRIPT = os.path.join(DAGS_FOLDER,"scripts", "load", "load_binance_trade_batchjob.py")
+
+DELETE_SCRIPT = os.path.join(DAGS_FOLDER,"scripts", "delete", "delete_binance_trade_realtime.py")
+
+
+DBT_PROJECT = "/opt/airflow/dbt_project"
 
 
 default_args = {
@@ -30,9 +34,30 @@ default_args = {
 # =========================
 # def run_ingestion():
 #     subprocess.run(["python", INGESTION_SCRIPT], check=True)
-def run_ingestion():
+def get_run_date(context):
+
+    conf = context["dag_run"].conf or {}
+
+    if conf.get("date"):
+        return conf["date"]
+
+    return (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+
+
+def run_ingestion(**context):
+
+    run_date = get_run_date(context)
     # Thêm capture_output=True và text=True để gom log lỗi của file script
-    result = subprocess.run(["python", INGESTION_SCRIPT], capture_output=True, text=True)
+    result = subprocess.run(
+        [
+            "python",
+            INGESTION_SCRIPT,
+            "--date",
+            run_date
+        ],
+        capture_output=True,
+        text=True
+    )
     
     # In log chuẩn (nếu có)
     if result.stdout:
@@ -51,9 +76,21 @@ def run_ingestion():
 # def run_load():
 #     subprocess.run(["python", LOAD_SCRIPT], check=True)
 
-def run_load():
+def run_load(**context):
+
+    run_date = get_run_date(context)
     # Thêm capture_output=True và text=True để gom log lỗi lại
-    result = subprocess.run(["python", LOAD_SCRIPT], capture_output=True, text=True)
+    result = subprocess.run(
+        [
+            "python",
+            LOAD_SCRIPT,
+            "--date",
+            run_date
+        ],
+        capture_output=True,
+        text=True
+    )
+
     
     # In cả log chuẩn và log lỗi ra Airflow Logs
     if result.stdout:
@@ -64,6 +101,60 @@ def run_load():
     # Vẫn phải raise lỗi để Airflow biết là task bị Fail
     if result.returncode != 0:
         raise Exception(f"Script failed with exit code {result.returncode}")
+    
+def run_dbt(**context):
+
+    run_date = get_run_date(context)
+
+    cmd = [
+        "dbt",
+        "run",
+        "--project-dir",
+        DBT_PROJECT,
+        "--profiles-dir",
+        DBT_PROJECT,      # nếu profiles.yml nằm trong dbt_project
+        "--select",
+        "stg_binance_trade_batchjob",
+        "--vars",
+        f'{{"run_date":"{run_date}"}}'
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+
+    print(result.stdout)
+
+    if result.stderr:
+        print(result.stderr)
+
+    if result.returncode != 0:
+        raise Exception("dbt run failed")
+    
+def delete_realtime(**context):
+
+    run_date = get_run_date(context)
+    # Thêm capture_output=True và text=True để gom log lỗi lại
+    result = subprocess.run(
+        [
+            "python",
+            DELETE_SCRIPT,
+            "--date",
+            run_date
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    
+    # In cả log chuẩn và log lỗi ra Airflow Logs
+    if result.stdout:
+        print(f"STDOUT:\n{result.stdout}")
+    if result.stderr:
+        print(f"STDERR:\n{result.stderr}")
+        
+    # Vẫn phải raise lỗi để Airflow biết là task bị Fail
+    if result.returncode != 0:
+        raise Exception(f"Script failed with exit code {result.returncode}")
+
 # =========================
 # DAG
 # =========================
@@ -71,7 +162,7 @@ with DAG(
     dag_id="binance_daily_pipeline",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
-    schedule="45 16 * * *", 
+    schedule="30 00 * * *", 
     catchup=False,
     max_active_runs=1,
     tags=["binance", "etl"],
@@ -86,5 +177,14 @@ with DAG(
         task_id="load_clickhouse_step",
         python_callable=run_load,
     )
+    dbt_task = PythonOperator(
+        task_id="dbt_staging_step",
+    
+        python_callable=run_dbt,
+    )
+    delete_realtime_task = PythonOperator(
+        task_id="delete_realtime_step",
+        python_callable=delete_realtime,
+    )
 
-    ingestion_task >> load_task
+    ingestion_task >> load_task >> dbt_task >> delete_realtime_task

@@ -16,3 +16,5 @@ python-dotenv==1.0.1
 kafka-python==2.0.2
 websocket-client==1.7.0
 clickhouse-driver==0.2.9
+
+apache-airflow==2.8.1
