@@ -83,6 +83,18 @@ def add_ingestion_time(df):
     return df
 
 # =========================
+
+def delete_from_clickhouse(df, run_date):
+    if df is None or df.empty:
+        print("No data to insert")
+        return
+
+    client.command(f"""
+    ALTER TABLE {CLICKHOUSE_DB}.{CLICKHOUSE_TABLE}
+    DROP PARTITION '{run_date}'
+            """)
+
+    print(f"Deleted rows from {CLICKHOUSE_DB}.{CLICKHOUSE_TABLE}")
 # =========================
 # INSERT CLICKHOUSE
 # =========================
@@ -98,6 +110,8 @@ def insert_to_clickhouse(df):
     )
 
     print(f"Inserted {len(df)} rows into {CLICKHOUSE_DB}.{CLICKHOUSE_TABLE}")
+
+
 
 # =========================
 # MAIN
@@ -117,5 +131,5 @@ if __name__ == "__main__":
     df = add_ingestion_time(df)
 
     print("Columns after clean:", df.columns.tolist())
-
+    delete_from_clickhouse(df, target_date)
     insert_to_clickhouse(df)

@@ -162,7 +162,7 @@ with DAG(
     dag_id="binance_daily_pipeline",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),
-    schedule="30 00 * * *", 
+    schedule="30 01 * * *", 
     catchup=False,
     max_active_runs=1,
     tags=["binance", "etl"],

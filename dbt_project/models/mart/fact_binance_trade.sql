@@ -45,7 +45,7 @@ select
     price,
     quantity,
     quote_quantity,
-    trade_time,
+    trade_time_us,
     trade_time_vn,
     is_buyer_maker,
     is_best_match,

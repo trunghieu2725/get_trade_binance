@@ -8,9 +8,7 @@ import argparse
 
 SYMBOLS = [
     "BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT",
-    "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "TRXUSDT", "TONUSDT",
-    "DOTUSDT", "LINKUSDT", "POLUSDT", "LTCUSDT", "BCHUSDT",
-    "NEARUSDT", "ATOMUSDT", "APTUSDT", "ARBUSDT", "OPUSDT"
+    "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "TRXUSDT", "TONUSDT"
 ]
 parser = argparse.ArgumentParser(
     description="Download Binance daily trade data"

@@ -52,14 +52,19 @@ def run_ws(producer, topic, symbols, bootstrap):
         time.sleep(5)
 
 def main():
+    symbols_get  = [
+    "BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT",
+    "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "TRXUSDT", "TONUSDT"
+]
     parser = argparse.ArgumentParser()
     parser.add_argument("--bootstrap", default=os.getenv("KAFKA_BOOTSTRAP","localhost:9092"))
     parser.add_argument("--topic", default="binance-trade")
-    parser.add_argument("--symbols", default="BTCUSDT,ETHUSDT,ADAUSDT")
+    
     args = parser.parse_args()
 
-    symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
+    symbols = [s.upper() for s in symbols_get]
     producer = KafkaProducer(
+
         bootstrap_servers=args.bootstrap,
         value_serializer=lambda v: json.dumps(v).encode("utf-8"),
         linger_ms=5

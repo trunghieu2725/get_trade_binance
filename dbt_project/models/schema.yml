@@ -9,3 +9,18 @@ models:
       - name: symbol
         tests:
           - not_null
+  - name: stg_binance_trade_batchjob
+    columns:
+      - name: trade_time_us
+        tests:
+          - not_null
+      - name: symbol
+        tests:
+          - not_null
+      - name: ingestion_time
+        tests:
+          - not_null
+      - name: trade_id
+        tests:
+          - not_null
+          - unique

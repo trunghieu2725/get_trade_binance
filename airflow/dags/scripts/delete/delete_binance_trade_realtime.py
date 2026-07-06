@@ -49,8 +49,8 @@ def check_and_delete_realtime(run_date):  ## kiểm tra thử batchjob đã ch�
 
         count = client.query(f"""
             SELECT count(*)
-            FROM raw.raw_binance_trade_batchjob
-            WHERE toDate(trade_time) = '{run_date}'
+            FROM stg.stg_binance_trade_batchjob
+            WHERE Date(trade_time_us) = '{run_date}'
         """).first_item["count()"]
 
         print(f"Batch rows = {count}")

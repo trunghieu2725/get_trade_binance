@@ -25,7 +25,7 @@ WITH
     FROM payload
   )
 SELECT
-    JSONExtractString(data_json, 'E') AS trade_id
+    JSONExtractString(data_json, 't') AS trade_id
     ,toFloat64(
     nullIf(
       replaceRegexpAll(coalesce(JSONExtractString(data_json,'p'), ''), '[^0-9eE+\-\.]', ''),
