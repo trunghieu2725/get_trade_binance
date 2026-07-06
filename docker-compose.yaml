@@ -91,6 +91,7 @@ services:
       - ./airflow/logs:/opt/airflow/logs
       - ./data:/opt/airflow/data
       - ./dbt_project:/opt/airflow/dbt_project
+      - ./dbt_profiles:/opt/airflow/dbt_profiles
       
  
 
@@ -123,8 +124,8 @@ services:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/logs:/opt/airflow/logs
       - ./data:/opt/airflow/data
-      - D:/ClickHouse/dbt_project:/opt/airflow/dbt_project
-      
+      - ./dbt_project:/opt/airflow/dbt_project
+      - ./dbt_profiles:/opt/airflow/dbt_profiles
 
     command: scheduler
 # Add Zookeeper + Kafka
