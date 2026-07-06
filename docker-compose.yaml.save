@@ -94,7 +94,7 @@ services:
       - ./dbt_project:/opt/airflow/dbt_project
       - ./dbt_profiles:/root/.dbt
       - ./dbt_profiles:/home/airflow/.dbt 
-
+      - ./dbt_profiles:/home/airflow/.dbt
     ports:
       - "8081:8080"
 
