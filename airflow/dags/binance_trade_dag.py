@@ -20,6 +20,7 @@ DELETE_SCRIPT = os.path.join(DAGS_FOLDER,"scripts", "delete", "delete_binance_tr
 
 
 DBT_PROJECT = "/opt/airflow/dbt_project"
+DBT_PROFILES = "/opt/airflow/dbt_profiles/"
 
 
 default_args = {
@@ -112,7 +113,7 @@ def run_dbt(**context):
         "--project-dir",
         DBT_PROJECT,
         "--profiles-dir",
-        DBT_PROJECT,      # nếu profiles.yml nằm trong dbt_project
+        DBT_PROFILES,         # nếu profiles.yml nằm trong dbt_project
         "--select",
         "stg_binance_trade_batchjob",
         "--vars",
