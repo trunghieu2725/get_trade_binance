@@ -53,8 +53,9 @@ def run_ws(producer, topic, symbols, bootstrap):
 
 def main():
     symbols_get  = [
-    "BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT",
-    "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "TRXUSDT", "TONUSDT"
+    "BTCUSDT"
+    # , "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT",
+    # "DOGEUSDT", "ADAUSDT", "AVAXUSDT", "TRXUSDT", "TONUSDT"
 ]
     parser = argparse.ArgumentParser()
     parser.add_argument("--bootstrap", default=os.getenv("KAFKA_BOOTSTRAP","localhost:9092"))
