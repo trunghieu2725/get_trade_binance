@@ -8,3 +8,4 @@ COPY --chown=airflow:root requirements.txt /opt/airflow/requirements.txt
 
 # Cài đặt toàn bộ các gói trong file requirements.txt
 RUN pip install --no-cache-dir -r /opt/airflow/requirements.txt
+RUN pip install clickhouse-connect clickhouse-sqlalchemy psycopg2-binary

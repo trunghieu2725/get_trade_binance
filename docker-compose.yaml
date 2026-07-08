@@ -157,29 +157,38 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-  # dbt:
-  #   image: ghcr.io/dbt-labs/dbt-clickhouse:latest
-  #   env_file:
-  #   - .env
-  #   working_dir: /usr/app
 
-  #   volumes:
-  #     - ./dbt_project:/usr/app
-  #     - ./dbt_profiles:/root/.dbt
 
-  #   environment:
-  #     CLICKHOUSE_USER: ${CLICKHOUSE_USER}
-  #     CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
-  #   entrypoint: ["dbt"]
-  dbt-runner:  # <--- Tạo hẳn một service riêng chuyên chạy dbt
-    build: .   # Tự build từ Dockerfile cục bộ (Dockerfile cài python & dbt-clickhouse)
-    env_file:
-      - .env
+  superset:
+    build:
+      context: ./superset
+    container_name: superset
+    restart: unless-stopped
+
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+
+    ports:
+      - "8088:8088"
+
     environment:
-      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
-      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      SUPERSET_SECRET_KEY: "your-long-random-secret-key"
+      SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
+
     volumes:
-      - .:/usr/app  # Mount toàn bộ thư mục code dbt hiện tại vào container
+      - ./superset:/app/pythonpath
+      - clickhouse_data:/var/lib/clickhouse
+
+    command: >
+      bash -c "
+      superset db upgrade &&
+      superset fab create-admin --username admin --firstname Admin --lastname User --email admin@example.com --password admin || true &&
+      superset init &&
+      gunicorn --bind 0.0.0.0:8088 --workers 2 'superset.app:create_app()'
+      "
+
 volumes:
+  superset_home:
   clickhouse_data:
   airflow_pg_data:
