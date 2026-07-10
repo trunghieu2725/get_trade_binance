@@ -82,7 +82,7 @@ def run_ingestion(**context):
 
 def run_load(**context):
 
-    run_date = (get_run_date(context) - timedelta(days=2)).strftime("%Y-%m-%d")
+    run_date = get_run_date(context)
     # Thêm capture_output=True và text=True để gom log lỗi lại
     result = subprocess.run(
         [
@@ -162,7 +162,8 @@ def delete_realtime(**context):
 
 def delete_batchjob(**context):
 
-    run_date = get_run_date(context)
+    run_date = datetime.strptime(get_run_date(context), "%Y-%m-%d")
+    run_date = (run_date - timedelta(days=2)).strftime("%Y-%m-%d")
     # Thêm capture_output=True và text=True để gom log lỗi lại
     result = subprocess.run(
         [
