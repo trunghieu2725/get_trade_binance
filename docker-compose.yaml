@@ -161,7 +161,9 @@ services:
 
   superset:
     build:
-      context: ./superset
+      context: .
+      dockerfile: Dockerfile
+    image: clickhouse-superset
     container_name: superset
     restart: unless-stopped
 
