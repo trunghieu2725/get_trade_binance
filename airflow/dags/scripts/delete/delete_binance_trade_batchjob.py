@@ -54,7 +54,7 @@ def check_and_delete_batchjob(run_date):  ## kiểm tra thử batchjob đã ch�
 
         client.command(f"""
             delete from {CLICKHOUSE_DB_STG}.{CLICKHOUSE_TABLE_STG}
-            where date(trade_time) <= '{run_date}'
+            where date(trade_time_us) <= '{run_date}'
         """)
 
         print("Drop STG success")
