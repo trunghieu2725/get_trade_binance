@@ -1,3 +1,2 @@
-SQLALCHEMY_DATABASE_URI = (
-    "postgresql+psycopg2://airflow:airflow@postgres:5432/superset"
-)
+SQLALCHEMY_DATABASE_URI = \
+"postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/superset"
