@@ -46,14 +46,14 @@ def check_and_delete_batchjob(run_date):  ## kiểm tra thử batchjob đã ch�
 
 
         client.command(f"""
-            delete from {CLICKHOUSE_DB_RAW}.{CLICKHOUSE_DB_RAW}
+            delete from {CLICKHOUSE_DB_RAW}.{CLICKHOUSE_TABLE_RAW}
             where date(toTimeZone(fromUnixTimestamp64Micro(trade_time),'UTC')) <= '{run_date}'
         """)
 
         print("Drop Raw success")
 
         client.command(f"""
-            delete from {CLICKHOUSE_DB_STG}.{CLICKHOUSE_DB_STG}
+            delete from {CLICKHOUSE_DB_STG}.{CLICKHOUSE_TABLE_STG}
             where date(trade_time) <= '{run_date}'
         """)
 
