@@ -19,6 +19,9 @@ LOAD_SCRIPT = os.path.join(DAGS_FOLDER,"scripts", "load", "load_binance_trade_ba
 DELETE_SCRIPT = os.path.join(DAGS_FOLDER,"scripts", "delete", "delete_binance_trade_realtime.py")
 
 
+DELETE_SCRIPT_BATCHJOB = os.path.join(DAGS_FOLDER,"scripts", "delete", "delete_binance_trade_batchjob.py")
+
+
 DBT_PROJECT = "/opt/airflow/dbt_project"
 DBT_PROFILES = "/opt/airflow/dbt_profiles/"
 
@@ -154,7 +157,34 @@ def delete_realtime(**context):
         
     # Vẫn phải raise lỗi để Airflow biết là task bị Fail
     if result.returncode != 0:
-        raise Exception(f"Script failed with exit code {result.returncode}")
+        raise Exception(f"Script delete realtime failed with exit code {result.returncode}")
+    
+
+def delete_batchjob(**context):
+
+    run_date = get_run_date(context)
+    # Thêm capture_output=True và text=True để gom log lỗi lại
+    result = subprocess.run(
+        [
+            "python",
+            DELETE_SCRIPT_BATCHJOB,
+            "--date",
+            run_date
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    
+    # In cả log chuẩn và log lỗi ra Airflow Logs
+    if result.stdout:
+        print(f"STDOUT:\n{result.stdout}")
+    if result.stderr:
+        print(f"STDERR:\n{result.stderr}")
+        
+    # Vẫn phải raise lỗi để Airflow biết là task bị Fail
+    if result.returncode != 0:
+        raise Exception(f"Script delete batchjob failed with exit code {result.returncode}")
 
 # =========================
 # DAG
@@ -187,5 +217,8 @@ with DAG(
         task_id="delete_realtime_step",
         python_callable=delete_realtime,
     )
-
-    ingestion_task >> load_task >> dbt_task >> delete_realtime_task
+    delete_batchjon_task = PythonOperator(
+        task_id="delete_batchjob_step",
+        python_callable=delete_batchjob,
+    )
+    ingestion_task >> load_task >> dbt_task >> delete_realtime_task >> delete_batchjon_task
