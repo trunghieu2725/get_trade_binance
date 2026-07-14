@@ -93,6 +93,7 @@ services:
       - ./airflow/logs:/opt/airflow/logs
       - ./data:/opt/airflow/data
       - ./dbt_project:/opt/airflow/dbt_project
+      - ./dbt_profiles:/opt/airflow/dbt_profiles
       - ./dbt_profiles:/root/.dbt
       - ./dbt_profiles:/home/airflow/.dbt 
 
@@ -127,6 +128,7 @@ services:
       - ./airflow/logs:/opt/airflow/logs
       - ./data:/opt/airflow/data
       - ./dbt_project:/opt/airflow/dbt_project
+      - ./dbt_profiles:/opt/airflow/dbt_profiles
       - ./dbt_profiles:/root/.dbt      
       - ./dbt_profiles:/home/airflow/.dbt 
     command: scheduler

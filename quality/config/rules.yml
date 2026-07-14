@@ -1,0 +1,67 @@
+rules:
+
+  - id: RAW_001
+    name: json_valid
+    description: Binance event payload must be valid JSON.
+    enabled: true
+    layer: raw
+    severity: CRITICAL
+    owner: Data Engineering
+    type: sql
+    query: raw/json_valid.sql
+    metric: failed_rows
+    operator: "<="
+    threshold: 0
+    tags:
+      - json
+      - ingestion
+
+
+  - id: STG_001
+    name: duplicate_trade_batchjob
+    description: Trade ID must be unique per symbol.
+    enabled: true
+    layer: stg
+    severity: CRITICAL
+    owner: Data Engineering
+    type: sql
+    query: stg/duplicate_trade_batchjob.sql
+    metric: failed_rows
+    operator: "<="
+    threshold: 0
+    tags:
+      - duplicate
+      - integrity
+
+
+  - id: STG_002
+    name: positive_price
+    description: Price must be greater than zero.
+    enabled: true
+    layer: stg
+    severity: HIGH
+    owner: Data Engineering
+    type: sql
+    query: stg/positive_price.sql
+    metric: failed_rows
+    operator: "<="
+    threshold: 0
+    tags:
+      - price
+      - validity
+
+
+  - id: RAW_002
+    name: freshness
+    description: Latest trade ingestion delay must not exceed 60 seconds.
+    enabled: true
+    layer: raw
+    severity: CRITICAL
+    owner: Data Engineering
+    type: sql
+    query: raw/freshness.sql
+    metric: delay_seconds
+    operator: "<="
+    threshold: 60
+    tags:
+      - freshness

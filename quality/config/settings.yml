@@ -1,0 +1,12 @@
+clickhouse:
+  host: ${CLICKHOUSE_HOST}
+  port: ${CLICKHOUSE_PORT}
+  database: ${CLICKHOUSE_DATABASE}
+  username: ${CLICKHOUSE_USER}
+  password: ${CLICKHOUSE_PASSWORD}
+
+report:
+  output: reports/html
+
+logging:
+  level: INFO

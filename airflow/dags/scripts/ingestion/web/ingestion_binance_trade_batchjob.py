@@ -6,6 +6,7 @@ import requests
 from datetime import datetime, timedelta
 import argparse
 
+
 SYMBOLS = [
     "BTCUSDT"
     # , "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT",

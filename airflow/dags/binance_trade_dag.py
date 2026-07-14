@@ -222,4 +222,5 @@ with DAG(
         task_id="delete_batchjob_step",
         python_callable=delete_batchjob,
     )
-    ingestion_task >> load_task >> dbt_task >> delete_realtime_task >> delete_batchjon_task
+    ingestion_task >> load_task >> dbt_task >> delete_realtime_task 
+    # >> delete_batchjon_task
